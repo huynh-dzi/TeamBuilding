@@ -33,20 +33,24 @@ public class PlayerMovement : MonoBehaviour
     [Tooltip("Maximum angle (degrees) the character can look away from the camera forward direction.")]
     private float maxViewAngle = 80f;
 
-    private void Awake()
+    private void Start()
     {
-        _transform = this.transform;
-        _gm = GameObject.Find("GameSceneManager").GetComponent<GameSceneManager>();
-        _pv = GetComponent<PhotonView>();
+        _transform = transform;
         inputManager = GetComponent<InputManager>();
         playerRigidbody = GetComponent<Rigidbody>();
         playerCollider = GetComponent<Collider>();
+        _gm = GameObject.Find("GameSceneManager").GetComponent<GameSceneManager>();
+        _transform = this.transform;
         stamina = 100;
 
         if (!_pv.IsMine)
         {
             Destroy(this);
         }
+    }
+
+    private void Awake()
+    {
 
         if (Camera.main != null)
             cameraObject = Camera.main.transform;
@@ -59,10 +63,6 @@ public class PlayerMovement : MonoBehaviour
         if (_pv.IsMine)
         {
             HandleAllMovement();
-            if (stamina <= 0)
-            {
-                Dead();
-            }
         }
     }
 
@@ -142,10 +142,5 @@ public class PlayerMovement : MonoBehaviour
 
         Quaternion fallbackRotation = Quaternion.LookRotation(targetDirection);
         transform.rotation = Quaternion.Slerp(transform.rotation, fallbackRotation, rotationSpeed * Time.deltaTime);
-    }
-
-    void Dead()
-    {
-       
     }
 }
