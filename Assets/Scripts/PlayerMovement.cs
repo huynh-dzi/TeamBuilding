@@ -22,18 +22,12 @@ public class PlayerMovement : MonoBehaviour
 
     GameSceneManager _gm;
 
-    [Header("Mouse Rotation")]
-    [SerializeField]
-    private float mouseSensitivity = 7f;
-    [SerializeField]
-    private float mouseDeadzone = 0.01f;
-
     [Header("View Limits")]
     [SerializeField]
     [Tooltip("Maximum angle (degrees) the character can look away from the camera forward direction.")]
     private float maxViewAngle = 80f;
 
-    private void Start()
+    private void Awake()
     {
         _transform = transform;
         inputManager = GetComponent<InputManager>();
@@ -47,10 +41,6 @@ public class PlayerMovement : MonoBehaviour
         {
             Destroy(this);
         }
-    }
-
-    private void Awake()
-    {
 
         if (Camera.main != null)
             cameraObject = Camera.main.transform;
