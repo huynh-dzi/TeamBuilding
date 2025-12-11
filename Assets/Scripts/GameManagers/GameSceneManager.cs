@@ -43,7 +43,7 @@ public class GameSceneManager : MonoBehaviourPunCallbacks
         float spawnPointX = Random.Range(-5f, 5f);
         float spawnPointY = 1;
 
-        PhotonNetwork.Instantiate("PhotonPlayer", new Vector3(spawnPointX, spawnPointY, 0), Quaternion.identity);
+        PhotonNetwork.Instantiate("Player", new Vector3(spawnPointX, spawnPointY, 0), Quaternion.identity);
     }
 
     public override void OnPlayerEnteredRoom(Player newPlayer)
