@@ -47,10 +47,17 @@ public class RoomSceneManager : MonoBehaviourPunCallbacks
         playerListText.text = sb.ToString();
 
         if (buttonStartCoopMode != null)
+        {
             buttonStartCoopMode.gameObject.SetActive(PhotonNetwork.IsMasterClient);
+            buttonStartCoopMode.interactable = PhotonNetwork.IsMasterClient;
+        }
+            
 
         if (buttonStartCompeteMode != null)
+        {
             buttonStartCompeteMode.gameObject.SetActive(PhotonNetwork.IsMasterClient);
+            buttonStartCompeteMode.interactable = PhotonNetwork.IsMasterClient;
+        }
 
         if(!PhotonNetwork.IsMasterClient)
         {
@@ -74,4 +81,39 @@ public class RoomSceneManager : MonoBehaviourPunCallbacks
         UpdatePlayerList();
     }
 
+    public void OnClickStartGameCoop()
+    {
+        if (PhotonNetwork.CurrentRoom.PlayerCount >= 2)
+        {
+            connectionStatusText.text = "Starting game...";
+            SceneManager.LoadScene("MainGame1");
+        }
+        else
+        {
+            connectionStatusText.text = "At least 2 players are required to start game.";
+        }
+    }
+
+    public void OnClickStartGameCompete()
+    {
+        if (PhotonNetwork.CurrentRoom.PlayerCount >= 2)
+        {
+            connectionStatusText.text = "Starting game...";
+            SceneManager.LoadScene("MainGame2");
+        }
+        else
+        {
+            connectionStatusText.text = "At least 2 players are required to start game.";
+        }
+    }
+
+    public void OnClickLeaveRoom()
+    {
+        PhotonNetwork.LeaveRoom();
+    }
+
+    public override void OnLeftRoom()
+    {
+        SceneManager.LoadScene("Lobby");
+    }
 }

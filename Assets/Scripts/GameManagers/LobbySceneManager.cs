@@ -16,11 +16,22 @@ public class LobbySceneManager : MonoBehaviourPunCallbacks
     [SerializeField] private TextMeshProUGUI roomListText;
     void Start()
     {
-        if(PhotonNetwork.IsConnected == false)
+        if (PhotonNetwork.IsConnected == false)
         {
             SceneManager.LoadScene("StartMenu");
         }
+        else
+        {
+            if (PhotonNetwork.CurrentLobby == null)
+            {
+                PhotonNetwork.JoinLobby();
+            }
 
+        }
+    }
+
+    public override void OnConnectedToMaster()
+    {
         PhotonNetwork.JoinLobby();
     }
 

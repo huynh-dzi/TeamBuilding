@@ -152,7 +152,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ef0427f0c720fdb44beabdf3c7c3cae9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
-  throwForce: 1000
+  throwForce: 800
   maxDistance: 2
   holdDistance: 1.2
   holdHeight: -0.2
