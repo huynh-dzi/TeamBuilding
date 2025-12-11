@@ -11,16 +11,29 @@ public class PlayerMovement : MonoBehaviour
     Rigidbody playerRigidbody;
     Collider playerCollider;
 
-    public float movementSpeed = 5f;
-    public float rotationSpeed = 10f;
-  
+    public float movementSpeed;
+    public float rotationSpeed;
+
+    [Header("Mouse Rotation")]
+    [SerializeField]
+    private float mouseSensitivity = 7f;
+    [SerializeField]
+    private float mouseDeadzone = 0.01f;
+
+    [Header("View Limits")]
+    [SerializeField]
+    [Tooltip("Maximum angle (degrees) the character can look away from the camera forward direction.")]
+    private float maxViewAngle = 80f;
 
     private void Awake()
     {
         inputManager = GetComponent<InputManager>();
         playerRigidbody = GetComponent<Rigidbody>();
         playerCollider = GetComponent<Collider>();
-        cameraObject = Camera.main.transform;
+        if (Camera.main != null)
+            cameraObject = Camera.main.transform;
+        else
+            cameraObject = null;
     }
 
     public void HandleAllMovement()
@@ -31,6 +44,9 @@ public class PlayerMovement : MonoBehaviour
 
     private void HandleMovement()
     {
+        if (cameraObject == null)
+            return;
+
         moveDirection = cameraObject.forward * inputManager.verticalInput;
         moveDirection = moveDirection + cameraObject.right * inputManager.horizontalInput;
         moveDirection.Normalize();
@@ -43,9 +59,50 @@ public class PlayerMovement : MonoBehaviour
 
     private void HandleRotation()
     {
-        Vector3 targetDirection = Vector3.zero;
+        Camera cam = cameraObject != null ? cameraObject.GetComponent<Camera>() ?? Camera.main : Camera.main;
+        if (cam == null)
+            return;
 
-        targetDirection = cameraObject.forward * inputManager.verticalInput;
+        // Ray from camera through mouse position
+        Ray ray = cam.ScreenPointToRay(Input.mousePosition);
+
+        // Horizontal plane at player's y to compute target point on ground plane
+        Plane groundPlane = new Plane(Vector3.up, new Vector3(0f, transform.position.y, 0f));
+
+        if (groundPlane.Raycast(ray, out float enter))
+        {
+            Vector3 hitPoint = ray.GetPoint(enter);
+            Vector3 desiredDirection = hitPoint - transform.position;
+            desiredDirection.y = 0f;
+
+            if (desiredDirection.sqrMagnitude > 0.0001f)
+            {
+                // Compute camera forward projected on XZ (reference direction)
+                Vector3 camForward = (cameraObject != null) ? cameraObject.forward : cam.transform.forward;
+                camForward.y = 0f;
+                camForward.Normalize();
+
+                // Angle from camera forward to the desired direction
+                float signedAngle = Vector3.SignedAngle(camForward, desiredDirection.normalized, Vector3.up);
+
+                // Clamp angle so character cannot look further than maxViewAngle away from camera forward
+                float clampedAngle = Mathf.Clamp(signedAngle, -maxViewAngle, maxViewAngle);
+
+                // Build the clamped direction by rotating camera forward by the clamped angle
+                Vector3 clampedDirection = Quaternion.AngleAxis(clampedAngle, Vector3.up) * camForward;
+
+                // Smoothly rotate toward the clamped direction
+                Quaternion targetRotation = Quaternion.LookRotation(clampedDirection);
+                transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotationSpeed * Time.deltaTime);
+                return;
+            }
+        }
+
+        // Fallback: rotate toward movement direction when ray doesn't hit
+        if (cameraObject == null)
+            return;
+
+        Vector3 targetDirection = cameraObject.forward * inputManager.verticalInput;
         targetDirection = targetDirection + cameraObject.right * inputManager.horizontalInput;
         targetDirection.Normalize();
         targetDirection.y = 0;
@@ -53,9 +110,7 @@ public class PlayerMovement : MonoBehaviour
         if (targetDirection == Vector3.zero)
             targetDirection = transform.forward;
 
-        Quaternion targetRotation = Quaternion.LookRotation(targetDirection);
-        Quaternion playerRotation = Quaternion.Slerp(transform.rotation, targetRotation, rotationSpeed * Time.deltaTime);
-
-        transform.rotation = playerRotation;
+        Quaternion fallbackRotation = Quaternion.LookRotation(targetDirection);
+        transform.rotation = Quaternion.Slerp(transform.rotation, fallbackRotation, rotationSpeed * Time.deltaTime);
     }
 }
