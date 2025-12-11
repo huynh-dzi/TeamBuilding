@@ -1,7 +1,12 @@
+using Photon.Pun;
 using UnityEngine;
 
 public class PlayerMovement : MonoBehaviour
 {
+    private Transform _transform;
+
+    public PhotonView _pv;
+
     InputManager inputManager;
 
     Vector3 moveDirection;
@@ -13,6 +18,9 @@ public class PlayerMovement : MonoBehaviour
 
     public float movementSpeed;
     public float rotationSpeed;
+    public int stamina;
+
+    GameSceneManager _gm;
 
     [Header("Mouse Rotation")]
     [SerializeField]
@@ -27,13 +35,35 @@ public class PlayerMovement : MonoBehaviour
 
     private void Awake()
     {
+        _transform = this.transform;
+        _gm = GameObject.Find("GameSceneManager").GetComponent<GameSceneManager>();
+        _pv = GetComponent<PhotonView>();
         inputManager = GetComponent<InputManager>();
         playerRigidbody = GetComponent<Rigidbody>();
         playerCollider = GetComponent<Collider>();
+        stamina = 100;
+
+        if (!_pv.IsMine)
+        {
+            Destroy(this);
+        }
+
         if (Camera.main != null)
             cameraObject = Camera.main.transform;
         else
             cameraObject = null;
+    }
+
+    private void Update()
+    {
+        if (_pv.IsMine)
+        {
+            HandleAllMovement();
+            if (stamina <= 0)
+            {
+                Dead();
+            }
+        }
     }
 
     public void HandleAllMovement()
@@ -112,5 +142,10 @@ public class PlayerMovement : MonoBehaviour
 
         Quaternion fallbackRotation = Quaternion.LookRotation(targetDirection);
         transform.rotation = Quaternion.Slerp(transform.rotation, fallbackRotation, rotationSpeed * Time.deltaTime);
+    }
+
+    void Dead()
+    {
+       
     }
 }

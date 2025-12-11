@@ -6,19 +6,9 @@ using UnityEngine.SceneManagement;
 public class StartSceneManager : MonoBehaviourPunCallbacks
 {
     [SerializeField] private TMP_Text connectionStatusText;
-    void Start()
-    {
-
-    }
-
-
-    void Update()
-    {
-
-    }
-
     public void OnClickStart()
     {
+        PhotonNetwork.AutomaticallySyncScene = true;
         PhotonNetwork.ConnectUsingSettings();
         connectionStatusText.text = "Connecting to server...";
     }
