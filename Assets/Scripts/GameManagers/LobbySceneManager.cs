@@ -11,6 +11,7 @@ using System.Text;
 public class LobbySceneManager : MonoBehaviourPunCallbacks
 {
     [SerializeField] TMP_InputField inputRoomName;
+    [SerializeField] TMP_InputField inputPlayerName;
     [SerializeField] private TMP_Text connectionStatusText;
     [SerializeField] private TextMeshProUGUI roomListText;
     void Start()
@@ -35,11 +36,26 @@ public class LobbySceneManager : MonoBehaviourPunCallbacks
         return roomName.Trim();
     }
 
+    public string GetPlayerName()
+    {
+        string playerName = inputPlayerName.text;
+        return playerName.Trim();
+    }
+
     public void OnClickCreateRoom()
     {
         string roomName = GetRoomName();
+        string playerName = GetPlayerName();
 
-        if (roomName.Length > 0)
+        if (string.IsNullOrEmpty(playerName))
+        {
+            connectionStatusText.text = "Player name is invalid.";
+            return;
+        }
+
+        PhotonNetwork.LocalPlayer.NickName = playerName;
+
+        if (string.IsNullOrEmpty(roomName) == false)
         {
             PhotonNetwork.CreateRoom(roomName);
             connectionStatusText.text = "Creating room...";
@@ -47,13 +63,24 @@ public class LobbySceneManager : MonoBehaviourPunCallbacks
         else 
         { 
             connectionStatusText.text = "Room name is invalid.";
+            return;
         }
     }
 
     public void OnClickJoinRoom()
     {
         string roomName = GetRoomName();
-        if (roomName.Length > 0)
+        string playerName = GetPlayerName();
+
+        if (string.IsNullOrEmpty(playerName))
+        {
+            connectionStatusText.text = "Player name is invalid.";
+            return;
+        }
+
+        PhotonNetwork.LocalPlayer.NickName = playerName;
+
+        if (string.IsNullOrEmpty(roomName) == false)
         {
             PhotonNetwork.JoinRoom(roomName);
             connectionStatusText.text = "Joining room...";
@@ -61,6 +88,7 @@ public class LobbySceneManager : MonoBehaviourPunCallbacks
         else 
         { 
             connectionStatusText.text = "Room name is invalid.";
+            return;
         }
     }
 
