@@ -1,5 +1,6 @@
 using UnityEngine;
 using TMPro;
+using UnityEngine.SceneManagement;
 public class Timer : MonoBehaviour
 {
     [SerializeField] private TextMeshProUGUI timerText;
@@ -26,6 +27,7 @@ public class Timer : MonoBehaviour
         {
             // timer is zero
             timerText.color = Color.red;
+            SceneManager.LoadScene("GameOver");
         }
 
         // Play the 10-second sound once when threshold is reached

@@ -781,10 +781,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Timer
   timerText: {fileID: 1089951525}
-  remainingTime: 120
+  remainingTime: 15
   tenSecondClip: {fileID: 8300000, guid: 3ae6475e234293848846aa3431dc7023, type: 3}
   audioSource: {fileID: 0}
-  tenSecondThreshold: 12
+  tenSecondThreshold: 11
 --- !u!1001 &2209012728240995342
 PrefabInstance:
   m_ObjectHideFlags: 0
