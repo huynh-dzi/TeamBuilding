@@ -9,9 +9,6 @@ using System.Text;
 
 public class GameSceneManager : MonoBehaviourPunCallbacks
 {
-    [SerializeField] List<string> messageList = new List<string>();
-    [SerializeField] TextMeshProUGUI messageText;
-
     private PhotonView _pv;
 
     public Dictionary<Player, bool> alivePlayerMap = new Dictionary<Player, bool>();
@@ -56,11 +53,6 @@ public class GameSceneManager : MonoBehaviourPunCallbacks
         if (alivePlayerMap.ContainsKey(otherPlayer))
         {
             alivePlayerMap.Remove(otherPlayer);
-        }
-
-        if(PhotonNetwork.IsMasterClient)
-        {
-            _pv.RPC("RPC_SendMessage", RpcTarget.All, $"{otherPlayer.NickName} has left the game.");
         }
     }
 }

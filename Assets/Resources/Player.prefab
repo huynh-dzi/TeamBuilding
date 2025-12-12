@@ -456,11 +456,11 @@ GameObject:
   - component: {fileID: 6523215009686612781}
   - component: {fileID: 654514691249092845}
   - component: {fileID: 4225425799847459482}
-  - component: {fileID: 1402512046992195989}
   - component: {fileID: 394873152882007125}
   - component: {fileID: 9134674988768392549}
   - component: {fileID: 4539255832592800582}
   - component: {fileID: 705522358419459145}
+  - component: {fileID: 4910061864368161877}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -521,25 +521,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerMovement
   _pv: {fileID: 4539255832592800582}
+  cameraObject: {fileID: 0}
   movementSpeed: 6
   rotationSpeed: 2
   stamina: 0
   maxViewAngle: 80
---- !u!114 &1402512046992195989
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4888074915812879862}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d00f25d83e101c64bb50c48f9666a4c8, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::InputManager
-  movementInput: {x: 0, y: 0}
-  verticalInput: 0
-  horizontalInput: 0
 --- !u!114 &394873152882007125
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -618,6 +604,21 @@ MonoBehaviour:
   m_SynchronizeRotation: 1
   m_SynchronizeScale: 0
   m_UseLocal: 1
+--- !u!114 &4910061864368161877
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4888074915812879862}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d00f25d83e101c64bb50c48f9666a4c8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::InputManager
+  movementInput: {x: 0, y: 0}
+  verticalInput: 0
+  horizontalInput: 0
 --- !u!1 &5556040202170930647
 GameObject:
   m_ObjectHideFlags: 0

@@ -1,6 +1,7 @@
 using Photon.Pun;
 using UnityEngine;
 
+[RequireComponent(typeof(Rigidbody))]
 public class PlayerMovement : MonoBehaviour
 {
     private Transform _transform;
@@ -11,7 +12,8 @@ public class PlayerMovement : MonoBehaviour
 
     Vector3 moveDirection;
 
-    private Transform cameraObject;
+    // cameraObject is assigned by PlayerManager for the local player
+    [HideInInspector] public Transform cameraObject;
 
     Rigidbody playerRigidbody;
     Collider playerCollider;
@@ -27,33 +29,57 @@ public class PlayerMovement : MonoBehaviour
     [Tooltip("Maximum angle (degrees) the character can look away from the camera forward direction.")]
     private float maxViewAngle = 80f;
 
+    // log once if input missing
+    private bool inputMissingLogged = false;
+
     private void Awake()
     {
-        _transform = transform;
-        inputManager = GetComponent<InputManager>();
-        playerRigidbody = GetComponent<Rigidbody>();
-        playerCollider = GetComponent<Collider>();
-        _gm = GameObject.Find("GameSceneManager").GetComponent<GameSceneManager>();
-        _transform = this.transform;
-        stamina = 100;
+        // Ensure we have a PhotonView reference (don't rely on inspector)
+        if (_pv == null)
+            _pv = GetComponent<PhotonView>();
 
-        if (!_pv.IsMine)
+        if (_pv == null)
         {
-            Destroy(this);
+            Debug.LogError("PlayerMovement requires a PhotonView on the same GameObject.");
+            enabled = false;
+            return;
         }
 
-        if (Camera.main != null)
-            cameraObject = Camera.main.transform;
-        else
-            cameraObject = null;
+        // Disable this component for remote instances (PlayerManager will not call it)
+        if (!_pv.IsMine)
+        {
+            enabled = false;
+            return;
+        }
+
+        // Local-only initialization
+        _transform = transform;
+        inputManager = GetComponent<InputManager>();
+
+        if (inputManager == null)
+        {
+            Debug.LogError($"PlayerMovement on '{name}': InputManager not found on player prefab. Attach InputManager to the player prefab.");
+            enabled = false;
+            return;
+        }
+
+        playerRigidbody = GetComponent<Rigidbody>();
+        playerCollider = GetComponent<Collider>();
+        var gmObj = GameObject.Find("GameSceneManager");
+        if (gmObj != null)
+            _gm = gmObj.GetComponent<GameSceneManager>();
+        stamina = 100;
+    }
+
+    // Called by PlayerManager to inject the correct camera for the local player
+    public void SetCamera(Transform cam)
+    {
+        cameraObject = cam;
     }
 
     private void Update()
     {
-        if (_pv.IsMine)
-        {
-            HandleAllMovement();
-        }
+        // PlayerManager calls HandleAllMovement in FixedUpdate; keep Update light.
     }
 
     public void HandleAllMovement()
@@ -64,8 +90,16 @@ public class PlayerMovement : MonoBehaviour
 
     private void HandleMovement()
     {
-        if (cameraObject == null)
+        // Defensive checks to avoid NullReferenceException
+        if (cameraObject == null || inputManager == null || playerRigidbody == null)
+        {
+            if (!inputMissingLogged)
+            {
+                Debug.LogWarning($"PlayerMovement: missing component(s). cameraObject={(cameraObject==null)}, inputManager={(inputManager==null)}, playerRigidbody={(playerRigidbody==null)} on {name}");
+                inputMissingLogged = true;
+            }
             return;
+        }
 
         moveDirection = cameraObject.forward * inputManager.verticalInput;
         moveDirection = moveDirection + cameraObject.right * inputManager.horizontalInput;
@@ -79,7 +113,10 @@ public class PlayerMovement : MonoBehaviour
 
     private void HandleRotation()
     {
-        Camera cam = cameraObject != null ? cameraObject.GetComponent<Camera>() ?? Camera.main : Camera.main;
+        if (cameraObject == null || inputManager == null)
+            return;
+
+        Camera cam = cameraObject.GetComponent<Camera>() ?? Camera.main;
         if (cam == null)
             return;
 
@@ -97,30 +134,21 @@ public class PlayerMovement : MonoBehaviour
 
             if (desiredDirection.sqrMagnitude > 0.0001f)
             {
-                // Compute camera forward projected on XZ (reference direction)
-                Vector3 camForward = (cameraObject != null) ? cameraObject.forward : cam.transform.forward;
+                Vector3 camForward = cameraObject.forward;
                 camForward.y = 0f;
                 camForward.Normalize();
 
-                // Angle from camera forward to the desired direction
                 float signedAngle = Vector3.SignedAngle(camForward, desiredDirection.normalized, Vector3.up);
 
-                // Clamp angle so character cannot look further than maxViewAngle away from camera forward
                 float clampedAngle = Mathf.Clamp(signedAngle, -maxViewAngle, maxViewAngle);
 
-                // Build the clamped direction by rotating camera forward by the clamped angle
                 Vector3 clampedDirection = Quaternion.AngleAxis(clampedAngle, Vector3.up) * camForward;
 
-                // Smoothly rotate toward the clamped direction
                 Quaternion targetRotation = Quaternion.LookRotation(clampedDirection);
                 transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotationSpeed * Time.deltaTime);
                 return;
             }
         }
-
-        // Fallback: rotate toward movement direction when ray doesn't hit
-        if (cameraObject == null)
-            return;
 
         Vector3 targetDirection = cameraObject.forward * inputManager.verticalInput;
         targetDirection = targetDirection + cameraObject.right * inputManager.horizontalInput;

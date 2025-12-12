@@ -44,6 +44,14 @@ PrefabInstance:
     m_TransformParent: {fileID: 6138319550513242088}
     m_Modifications:
     - target: {fileID: 3146371773364661712, guid: 3f7cdf86d9edbf243ba2e45394f589d2, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 0.9216217
+      objectReference: {fileID: 0}
+    - target: {fileID: 3146371773364661712, guid: 3f7cdf86d9edbf243ba2e45394f589d2, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 1.2752886
+      objectReference: {fileID: 0}
+    - target: {fileID: 3146371773364661712, guid: 3f7cdf86d9edbf243ba2e45394f589d2, type: 3}
       propertyPath: m_LocalPosition.x
       value: 4.1177263
       objectReference: {fileID: 0}
@@ -82,6 +90,14 @@ PrefabInstance:
     - target: {fileID: 3146371773364661712, guid: 3f7cdf86d9edbf243ba2e45394f589d2, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 90
+      objectReference: {fileID: 0}
+    - target: {fileID: 3729294273968911454, guid: 3f7cdf86d9edbf243ba2e45394f589d2, type: 3}
+      propertyPath: throwForce
+      value: 500
+      objectReference: {fileID: 0}
+    - target: {fileID: 7236667263815547952, guid: 3f7cdf86d9edbf243ba2e45394f589d2, type: 3}
+      propertyPath: m_Mass
+      value: 55
       objectReference: {fileID: 0}
     - target: {fileID: 7935463553156202530, guid: 3f7cdf86d9edbf243ba2e45394f589d2, type: 3}
       propertyPath: m_Name
@@ -149,6 +165,14 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 3696882135954841595, guid: b0df3c857d455664799e5237fd2b36ee, type: 3}
+      propertyPath: m_Mass
+      value: 30
+      objectReference: {fileID: 0}
+    - target: {fileID: 9209948742889471534, guid: b0df3c857d455664799e5237fd2b36ee, type: 3}
+      propertyPath: throwForce
+      value: 400
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -211,6 +235,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Normal brick
       objectReference: {fileID: 0}
+    - target: {fileID: 8510982065897307693, guid: 2aaab32036e453d469abeb1b47588e87, type: 3}
+      propertyPath: m_Mass
+      value: 40
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -235,7 +263,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2008043271162962553, guid: ab1a3d64cf7550a4f887cfb6629ecce6, type: 3}
       propertyPath: m_LocalScale.y
-      value: 1.4040809
+      value: 1.3212401
+      objectReference: {fileID: 0}
+    - target: {fileID: 2008043271162962553, guid: ab1a3d64cf7550a4f887cfb6629ecce6, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 3.7871146
       objectReference: {fileID: 0}
     - target: {fileID: 2008043271162962553, guid: ab1a3d64cf7550a4f887cfb6629ecce6, type: 3}
       propertyPath: m_LocalPosition.x
@@ -276,6 +308,10 @@ PrefabInstance:
     - target: {fileID: 2008043271162962553, guid: ab1a3d64cf7550a4f887cfb6629ecce6, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 90
+      objectReference: {fileID: 0}
+    - target: {fileID: 3347583067026329644, guid: ab1a3d64cf7550a4f887cfb6629ecce6, type: 3}
+      propertyPath: throwForce
+      value: 800
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

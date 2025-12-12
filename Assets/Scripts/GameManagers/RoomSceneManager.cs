@@ -83,7 +83,7 @@ public class RoomSceneManager : MonoBehaviourPunCallbacks
 
     public void OnClickStartGameCoop()
     {
-        if (PhotonNetwork.CurrentRoom.PlayerCount >= 2)
+        if (PhotonNetwork.CurrentRoom.PlayerCount >= 1)
         {
             connectionStatusText.text = "Starting game...";
             SceneManager.LoadScene("MainGame1");
@@ -96,7 +96,7 @@ public class RoomSceneManager : MonoBehaviourPunCallbacks
 
     public void OnClickStartGameCompete()
     {
-        if (PhotonNetwork.CurrentRoom.PlayerCount >= 2)
+        if (PhotonNetwork.CurrentRoom.PlayerCount >= 1)
         {
             connectionStatusText.text = "Starting game...";
             SceneManager.LoadScene("MainGame2");
