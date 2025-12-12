@@ -2,39 +2,42 @@ using Photon.Pun;
 using UnityEngine;
 
 [RequireComponent(typeof(Rigidbody))]
-public class PlayerMovement : MonoBehaviour
+public class PlayerMovement : MonoBehaviourPunCallbacks
 {
     private Transform _transform;
-
     public PhotonView _pv;
 
     InputManager inputManager;
 
     Vector3 moveDirection;
 
-    // cameraObject is assigned by PlayerManager for the local player
     [HideInInspector] public Transform cameraObject;
 
     Rigidbody playerRigidbody;
     Collider playerCollider;
 
     public float movementSpeed;
-    public float rotationSpeed;
-    public int stamina;
+    public float rotationSpeed = 240f;
+    private float pitch = 0f;
 
     GameSceneManager _gm;
 
     [Header("View Limits")]
-    [SerializeField]
-    [Tooltip("Maximum angle (degrees) the character can look away from the camera forward direction.")]
-    private float maxViewAngle = 80f;
+    [SerializeField] private float maxViewAngle = 80f;
 
-    // log once if input missing
     private bool inputMissingLogged = false;
+
+    [Header("Mouse Rotation")]
+    public float mouseSensitivity = 2f; // inspector adjustable
+    public float edgeSpeedMultiplier = 2f; // how much faster at screen edge
+    public float deadZone = 0.05f; // ignore tiny deltas near center
+
+    // Mouse delta tracking
+    private Vector3 lastMousePos;
+    private bool firstFrame = true;
 
     private void Awake()
     {
-        // Ensure we have a PhotonView reference (don't rely on inspector)
         if (_pv == null)
             _pv = GetComponent<PhotonView>();
 
@@ -45,42 +48,39 @@ public class PlayerMovement : MonoBehaviour
             return;
         }
 
-        // Disable this component for remote instances (PlayerManager will not call it)
         if (!_pv.IsMine)
         {
             enabled = false;
             return;
         }
 
-        // Local-only initialization
         _transform = transform;
         inputManager = GetComponent<InputManager>();
 
         if (inputManager == null)
         {
-            Debug.LogError($"PlayerMovement on '{name}': InputManager not found on player prefab. Attach InputManager to the player prefab.");
+            Debug.LogError($"PlayerMovement on '{name}': InputManager not found on player prefab.");
             enabled = false;
             return;
         }
 
         playerRigidbody = GetComponent<Rigidbody>();
         playerCollider = GetComponent<Collider>();
+
         var gmObj = GameObject.Find("GameSceneManager");
         if (gmObj != null)
             _gm = gmObj.GetComponent<GameSceneManager>();
-        stamina = 100;
+
+        Cursor.visible = true;
+        Cursor.lockState = CursorLockMode.None;
     }
 
-    // Called by PlayerManager to inject the correct camera for the local player
     public void SetCamera(Transform cam)
     {
         cameraObject = cam;
     }
 
-    private void Update()
-    {
-        // PlayerManager calls HandleAllMovement in FixedUpdate; keep Update light.
-    }
+    private void Update() { }
 
     public void HandleAllMovement()
     {
@@ -90,75 +90,52 @@ public class PlayerMovement : MonoBehaviour
 
     private void HandleMovement()
     {
-        // Defensive checks to avoid NullReferenceException
         if (cameraObject == null || inputManager == null || playerRigidbody == null)
         {
             if (!inputMissingLogged)
             {
-                Debug.LogWarning($"PlayerMovement: missing component(s). cameraObject={(cameraObject==null)}, inputManager={(inputManager==null)}, playerRigidbody={(playerRigidbody==null)} on {name}");
+                Debug.LogWarning($"PlayerMovement: missing components on {name}");
                 inputMissingLogged = true;
             }
             return;
         }
 
-        moveDirection = cameraObject.forward * inputManager.verticalInput;
-        moveDirection = moveDirection + cameraObject.right * inputManager.horizontalInput;
+        moveDirection = cameraObject.forward * inputManager.verticalInput
+                      + cameraObject.right * inputManager.horizontalInput;
+
         moveDirection.Normalize();
         moveDirection.y = 0;
-        moveDirection = moveDirection * movementSpeed;
+        moveDirection *= movementSpeed;
 
-        Vector3 movementVelocity = moveDirection;
-        playerRigidbody.linearVelocity = movementVelocity;
+        playerRigidbody.linearVelocity = moveDirection;
     }
 
     private void HandleRotation()
     {
-        if (cameraObject == null || inputManager == null)
-            return;
+        if (cameraObject == null || inputManager == null) return;
 
-        Camera cam = cameraObject.GetComponent<Camera>() ?? Camera.main;
-        if (cam == null)
-            return;
+        Vector2 screenCenter = new Vector2(Screen.width / 2f, Screen.height / 2f);
+        Vector2 mousePos = Input.mousePosition;
+        Vector2 deltaFromCenter = mousePos - screenCenter;
 
-        // Ray from camera through mouse position
-        Ray ray = cam.ScreenPointToRay(Input.mousePosition);
+        float normX = deltaFromCenter.x / (Screen.width / 2f);
 
-        // Horizontal plane at player's y to compute target point on ground plane
-        Plane groundPlane = new Plane(Vector3.up, new Vector3(0f, transform.position.y, 0f));
+        // Dead zone near center
+        float deadZone = 0.05f;
+        if (Mathf.Abs(normX) < deadZone) normX = 0f;
 
-        if (groundPlane.Raycast(ray, out float enter))
-        {
-            Vector3 hitPoint = ray.GetPoint(enter);
-            Vector3 desiredDirection = hitPoint - transform.position;
-            desiredDirection.y = 0f;
+        normX = Mathf.Clamp(normX, -1f, 1f);
 
-            if (desiredDirection.sqrMagnitude > 0.0001f)
-            {
-                Vector3 camForward = cameraObject.forward;
-                camForward.y = 0f;
-                camForward.Normalize();
+        // Distance from center for scaling speed
+        float distance = Mathf.Clamp01(Mathf.Abs(normX));
 
-                float signedAngle = Vector3.SignedAngle(camForward, desiredDirection.normalized, Vector3.up);
+        // Nonlinear scaling for faster rotation near edges
+        float edgeMultiplier = 1f + distance * 3f; // tweak as needed
 
-                float clampedAngle = Mathf.Clamp(signedAngle, -maxViewAngle, maxViewAngle);
+        float rotationX = normX * rotationSpeed * Time.deltaTime * mouseSensitivity * edgeMultiplier;
 
-                Vector3 clampedDirection = Quaternion.AngleAxis(clampedAngle, Vector3.up) * camForward;
-
-                Quaternion targetRotation = Quaternion.LookRotation(clampedDirection);
-                transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotationSpeed * Time.deltaTime);
-                return;
-            }
-        }
-
-        Vector3 targetDirection = cameraObject.forward * inputManager.verticalInput;
-        targetDirection = targetDirection + cameraObject.right * inputManager.horizontalInput;
-        targetDirection.Normalize();
-        targetDirection.y = 0;
-
-        if (targetDirection == Vector3.zero)
-            targetDirection = transform.forward;
-
-        Quaternion fallbackRotation = Quaternion.LookRotation(targetDirection);
-        transform.rotation = Quaternion.Slerp(transform.rotation, fallbackRotation, rotationSpeed * Time.deltaTime);
+        // Horizontal rotation only
+        transform.Rotate(Vector3.up * rotationX);
     }
+
 }

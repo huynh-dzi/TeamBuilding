@@ -1,7 +1,7 @@
 using Photon.Pun;
 using UnityEngine;
 
-public class PlayerManager : MonoBehaviour
+public class PlayerManager : MonoBehaviourPunCallbacks
 {
     private PhotonView _pv;
     private InputManager inputManager;

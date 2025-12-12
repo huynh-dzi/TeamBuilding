@@ -1,6 +1,8 @@
+using System.Collections;
 using UnityEngine;
 using TMPro;
 using UnityEngine.SceneManagement;
+
 public class Timer : MonoBehaviour
 {
     [SerializeField] private TextMeshProUGUI timerText;
@@ -8,13 +10,21 @@ public class Timer : MonoBehaviour
 
     [Header("Sound (optional)")]
     [SerializeField] private AudioClip tenSecondClip;
-    [SerializeField] private AudioSource audioSource; // optional, will PlayOneShot if provided
 
+    [Header("Thresholds / Delays")]
     [SerializeField] private float tenSecondThreshold = 12f;
+    [SerializeField] private float gameOverDelay = 4f; // seconds to wait before loading GameOver
 
     private bool playedTenSecondSound = false;
+    private bool gameOverScheduled = false;
 
-    // Update is called once per frame
+    GameSceneManager gameSceneManager;
+
+    private void Start()
+    {
+        gameSceneManager = GetComponent<GameSceneManager>();
+    }
+
     void Update()
     {
         if (remainingTime > 0f)
@@ -25,9 +35,13 @@ public class Timer : MonoBehaviour
         }
         else
         {
-            // timer is zero
-            timerText.color = Color.red;
-            SceneManager.LoadScene("GameOver");
+            // timer is zero - schedule a delayed GameOver load once
+            if (!gameOverScheduled)
+            {
+                gameOverScheduled = true;
+                if (timerText != null) timerText.color = Color.red;
+                StartCoroutine(DelayedLoadGameOver(gameOverDelay));
+            }
         }
 
         // Play the 10-second sound once when threshold is reached
@@ -37,24 +51,34 @@ public class Timer : MonoBehaviour
             playedTenSecondSound = true;
         }
 
-        int minutes = Mathf.FloorToInt(remainingTime / 60f);
-        int seconds = Mathf.FloorToInt(remainingTime % 60f);
-        timerText.text = string.Format("{0:00}:{1:00}", minutes, seconds);
+        if (timerText != null)
+        {
+            int minutes = Mathf.FloorToInt(remainingTime / 60f);
+            int seconds = Mathf.FloorToInt(remainingTime % 60f);
+            timerText.text = string.Format("{0:00}:{1:00}", minutes, seconds);
+        }
+    }
+
+    private IEnumerator DelayedLoadGameOver(float delay)
+    {
+        yield return new WaitForSeconds(delay);
+
+        // If you need to run GameSceneManager.TimesUp, call it here instead of directly loading the scene.
+        if (gameSceneManager != null)
+        {
+            gameSceneManager.TimesUp();
+        }
+        else
+        {
+            SceneManager.LoadScene("GameOver");
+        }
     }
 
     private void PlayTenSecondSound()
     {
         if (tenSecondClip == null) return;
-
-        if (audioSource != null)
-        {
-            audioSource.PlayOneShot(tenSecondClip);
-        }
-        else
-        {
-            // fallback to one-shot at camera position
-            Vector3 pos = (Camera.main != null) ? Camera.main.transform.position : transform.position;
-            AudioSource.PlayClipAtPoint(tenSecondClip, pos);
-        }
+        // fallback to one-shot at camera position
+        Vector3 pos = (Camera.main != null) ? Camera.main.transform.position : transform.position;
+        AudioSource.PlayClipAtPoint(tenSecondClip, pos);
     }
 }

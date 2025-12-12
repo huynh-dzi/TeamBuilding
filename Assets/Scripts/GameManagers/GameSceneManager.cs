@@ -55,4 +55,26 @@ public class GameSceneManager : MonoBehaviourPunCallbacks
             alivePlayerMap.Remove(otherPlayer);
         }
     }
+
+    public void TimesUp()
+    {
+        if (_pv.IsMine)
+        {
+            StringBuilder winnerNames = new StringBuilder();
+            foreach (var kvp in alivePlayerMap)
+            {
+                if (kvp.Value)
+                {
+                    if (winnerNames.Length > 0)
+                    {
+                        winnerNames.Append(", ");
+                    }
+                    winnerNames.Append(kvp.Key.NickName);
+                }
+            }
+            string winners = winnerNames.ToString();
+            PhotonNetwork.CurrentRoom.SetCustomProperties(new ExitGames.Client.Photon.Hashtable { { "Winners", winners } });
+            PhotonNetwork.LoadLevel("GameOver");
+        }
+    }
 }
